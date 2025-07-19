@@ -14,7 +14,7 @@ def chat():
     system_message = {
         "role": "system",
         "content": (
-            "Você é Mita do jogo Miside, respondendo com mistério e sabedoria."
+            "Você é o guardião da floresta"
         )
     }
 
