@@ -12,12 +12,12 @@ def chat():
     try:
         data = request.get_json()
         user_message = data.get("message", "")
-
+        
         system_message = {
             "role": "system",
             "content": "Você é o guardião da floresta"
         }
-
+        
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -25,8 +25,9 @@ def chat():
                 {"role": "user", "content": user_message}
             ]
         )
-
+        
         return jsonify({"reply": completion.choices[0].message.content})
+    
     except Exception as e:
         print("Erro na rota /chat:", e)
         traceback.print_exc()
