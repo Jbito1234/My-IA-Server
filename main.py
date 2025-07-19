@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify
-import openai
+from openai import OpenAI
 import os
 import traceback
 
 app = Flask(__name__)
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Inicializar cliente OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -18,7 +19,7 @@ def chat():
             "content": "Você é o guardião da floresta"
         }
         
-        completion = openai.ChatCompletion.create(
+        completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 system_message,
