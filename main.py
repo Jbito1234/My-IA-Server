@@ -1,5 +1,6 @@
 import os
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from google import genai
 
@@ -20,7 +21,13 @@ class Question(BaseModel):
 @app.post("/ask")
 async def ask_question(q: Question):
     response = client.models.generate_content(
-        model="gemini-2.5-flash-live",
+        model="gemini-2.5-flash",
         contents=q.question
     )
     return {"answer": response.text}
+
+# Endpoint para checagem de uptime (Uptime Robot)
+@app.get("/health")
+@app.head("/health")
+async def health_check():
+    return JSONResponse(content={"status": "ok"})
