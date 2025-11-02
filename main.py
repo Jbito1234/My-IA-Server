@@ -1,39 +1,26 @@
-from flask import Flask, request, jsonify
-from openai import OpenAI
 import os
-import traceback
+from fastapi import FastAPI
+from pydantic import BaseModel
+from google import genai
 
-app = Flask(__name__)
+# Pega a chave do ambiente
+api_key = os.environ.get("GEMINI_API_KEY")
 
-# Inicializar cliente OpenAI
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Cria o client do Gemini
+client = genai.Client(api_key=api_key)
 
-@app.route("/chat", methods=["POST"])
-def chat():
-    try:
-        data = request.get_json()
-        user_message = data.get("message", "")
-        
-        system_message = {
-            "role": "system",
-            "content": "Você é o guardião da floresta"
-        }
-        
-        completion = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                system_message,
-                {"role": "user", "content": user_message}
-            ]
-        )
-        
-        return jsonify({"reply": completion.choices[0].message.content})
-    
-    except Exception as e:
-        print("Erro na rota /chat:", e)
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+# Cria o servidor FastAPI
+app = FastAPI()
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+# Modelo para receber a pergunta do Roblox
+class Question(BaseModel):
+    question: str
+
+# Endpoint que o Roblox vai chamar
+@app.post("/ask")
+async def ask_question(q: Question):
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=q.question
+    )
+    return {"answer": response.text}
