@@ -20,7 +20,7 @@ class Question(BaseModel):
 @app.post("/ask")
 async def ask_question(q: Question):
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-2.5-flash-live",
         contents=q.question
     )
     return {"answer": response.text}
