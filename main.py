@@ -1,32 +1,48 @@
 import os
+import requests
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from google import genai
 
-# Pega a chave do ambiente
-api_key = os.environ.get("GEMINI_API_KEY")
-
-# Cria o client do Gemini
-client = genai.Client(api_key=api_key)
-
-# Cria o servidor FastAPI
+# Cria o app FastAPI
 app = FastAPI()
+
+# Pega a API key do ambiente (configure no Render como GROQ_API_KEY)
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
+# URL base da API do Groq
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 # Modelo para receber a pergunta do Roblox
 class Question(BaseModel):
     question: str
 
-# Endpoint que o Roblox vai chamar
+# Endpoint principal para receber perguntas do Roblox
 @app.post("/ask")
 async def ask_question(q: Question):
-    response = client.models.generate_content(
-        model="gemini-2.5-flash-live",
-        contents=q.question
-    )
-    return {"answer": response.text}
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-# Endpoint para checagem de uptime (Uptime Robot)
+    data = {
+        "model": "llama-3.1-8b-instant",  # rápido e gratuito
+        "messages": [
+            {"role": "user", "content": q.question}
+        ]
+    }
+
+    response = requests.post(GROQ_URL, headers=headers, json=data)
+    response_json = response.json()
+
+    try:
+        answer = response_json["choices"][0]["message"]["content"]
+    except Exception:
+        answer = "Erro ao gerar resposta. Tente novamente."
+
+    return {"answer": answer}
+
+# Endpoint de health check (UptimeRobot)
 @app.get("/health")
 @app.head("/health")
 async def health_check():
